@@ -2,46 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Cloud-inspired design system with sky blue gradients */
+/* Apple/iCloud inspired design system */
 
 @layer base {
   :root {
-    --background: 210 100% 98%;
-    --foreground: 222 47% 11%;
+    --background: 240 5% 96%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 199 89% 48%;
+    --primary: 211 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 199 89% 92%;
-    --accent-foreground: 199 89% 30%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 0 0% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 199 89% 48%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 211 100% 50%;
 
     --radius: 0.75rem;
 
-    /* Cloud theme custom colors */
-    --cloud-start: 199 89% 70%;
-    --cloud-end: 199 89% 48%;
-    --cloud-glow: 199 89% 80%;
-    --sky-gradient-start: 199 100% 95%;
-    --sky-gradient-end: 210 100% 98%;
+    /* Apple-inspired accent colors for ring */
+    --ring-blue: 211 100% 50%;
+    --ring-cyan: 187 100% 50%;
+    --ring-green: 142 76% 45%;
+    --ring-yellow: 45 100% 50%;
+    --ring-orange: 25 100% 50%;
+    --ring-red: 0 100% 60%;
+    --ring-pink: 330 100% 60%;
+    --ring-purple: 280 100% 60%;
+
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
     --success-glow: 142 76% 60%;
@@ -57,37 +61,34 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98%;
 
-    --card: 222 47% 15%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 15%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222 47% 15%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 15%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 199 89% 48%;
+    --primary: 211 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 212 27% 84%;
+    --border: 0 0% 25%;
+    --input: 0 0% 25%;
+    --ring: 211 100% 50%;
 
-    --cloud-start: 199 89% 60%;
-    --cloud-end: 199 89% 40%;
-    --cloud-glow: 199 89% 50%;
     --success: 142 76% 40%;
     --success-foreground: 0 0% 100%;
     --success-glow: 142 76% 50%;
@@ -109,35 +110,22 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
 }
 
 @layer utilities {
-  .gradient-sky {
-    background: linear-gradient(180deg, hsl(var(--sky-gradient-start)) 0%, hsl(var(--sky-gradient-end)) 100%);
-  }
-  
-  .gradient-cloud {
-    background: linear-gradient(135deg, hsl(var(--cloud-start)) 0%, hsl(var(--cloud-end)) 100%);
-  }
-
   .gradient-success {
     background: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--success-glow)) 100%);
   }
 
-  .shadow-cloud {
-    box-shadow: 0 10px 40px -10px hsl(var(--cloud-end) / 0.3),
-                0 4px 20px -5px hsl(var(--cloud-glow) / 0.2);
+  .shadow-card {
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.08);
   }
 
   .shadow-success {
-    box-shadow: 0 10px 40px -10px hsl(var(--success) / 0.3),
-                0 4px 20px -5px hsl(var(--success-glow) / 0.2);
-  }
-
-  .glow-cloud {
-    box-shadow: 0 0 30px hsl(var(--cloud-glow) / 0.4);
+    box-shadow: 0 10px 40px -10px hsl(var(--success) / 0.3);
   }
 
   .glow-success {
@@ -145,20 +133,20 @@
   }
 }
 
-/* Cloud animation */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
+/* Colorful ring animation */
+@keyframes rotate-ring {
+  from {
+    transform: rotate(0deg);
   }
-  50% {
-    transform: translateY(-20px);
+  to {
+    transform: rotate(360deg);
   }
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -169,7 +157,7 @@
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
@@ -186,16 +174,16 @@
   }
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+.animate-rotate-ring {
+  animation: rotate-ring 8s linear infinite;
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
+  animation: fadeInUp 0.5s ease-out forwards;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.5s ease-out forwards;
+  animation: scaleIn 0.4s ease-out forwards;
 }
 
 .animate-pulse-glow {
