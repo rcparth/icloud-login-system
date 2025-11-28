@@ -66,8 +66,11 @@ const SuccessScreen = ({ email, name }: SuccessScreenProps) => {
         <div className="w-full mt-8 space-y-3 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">New ID: Email</p>
-              <p className="text-foreground font-medium truncate mt-0.5">{email}</p>
+              <p className="text-sm text-foreground">
+                <span className="font-medium">New ID: email</span>
+                <span className="text-muted-foreground"> - </span>
+                <span className="font-semibold">{email}</span>
+              </p>
             </div>
             <button
               onClick={() => copyToClipboard(email, "email")}
@@ -83,8 +86,11 @@ const SuccessScreen = ({ email, name }: SuccessScreenProps) => {
 
           <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Name</p>
-              <p className="text-foreground font-medium truncate mt-0.5">{name}</p>
+              <p className="text-sm text-foreground">
+                <span className="font-medium">Name:</span>
+                <span className="text-muted-foreground"> - </span>
+                <span className="font-semibold">{name}</span>
+              </p>
             </div>
             <button
               onClick={() => copyToClipboard(name, "name")}
