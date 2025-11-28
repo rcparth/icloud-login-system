@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Copy, Download, ExternalLink, Check } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,9 +22,9 @@ const SuccessScreen = ({ email, name }: SuccessScreenProps) => {
         setCopiedName(true);
         setTimeout(() => setCopiedName(false), 2000);
       }
-      toast.success(`${type === "email" ? "Email" : "Name"} copied to clipboard!`);
+      toast.success(`${type === "email" ? "Email" : "Name"} copied!`);
     } catch (err) {
-      toast.error("Failed to copy to clipboard");
+      toast.error("Failed to copy");
     }
   };
 
@@ -48,83 +47,79 @@ const SuccessScreen = ({ email, name }: SuccessScreenProps) => {
   };
 
   return (
-    <Card className="w-full max-w-md shadow-success border-0 bg-card/80 backdrop-blur-sm animate-scale-in">
-      <CardHeader className="text-center pb-4">
-        <div className="mx-auto w-20 h-20 rounded-full gradient-success flex items-center justify-center mb-4 animate-pulse-glow">
+    <div className="w-full max-w-md bg-card rounded-2xl shadow-card p-8 animate-scale-in">
+      <div className="flex flex-col items-center">
+        {/* Success Icon */}
+        <div className="w-20 h-20 rounded-full gradient-success flex items-center justify-center animate-pulse-glow">
           <CheckCircle2 className="w-10 h-10 text-success-foreground" />
         </div>
-        <CardTitle className="text-2xl font-bold text-success animate-fade-in-up">
+        
+        {/* Title */}
+        <h1 className="mt-6 text-2xl font-semibold text-foreground tracking-tight animate-fade-in-up">
           Registration Successful!
-        </CardTitle>
-        <CardDescription className="text-muted-foreground animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          Your account has been created in the cloud
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Credentials Display */}
-        <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <div className="bg-accent/50 rounded-lg p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-muted-foreground">Email</p>
-                <p className="text-foreground font-semibold truncate">{email}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => copyToClipboard(email, "email")}
-                className="shrink-0 hover:bg-primary/10"
-              >
-                {copiedEmail ? (
-                  <Check className="w-4 h-4 text-success" />
-                ) : (
-                  <Copy className="w-4 h-4 text-muted-foreground" />
-                )}
-              </Button>
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          Your credentials have been saved
+        </p>
+
+        {/* Credentials */}
+        <div className="w-full mt-8 space-y-3 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">New ID: Email</p>
+              <p className="text-foreground font-medium truncate mt-0.5">{email}</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-muted-foreground">Name</p>
-                <p className="text-foreground font-semibold truncate">{name}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => copyToClipboard(name, "name")}
-                className="shrink-0 hover:bg-primary/10"
-              >
-                {copiedName ? (
-                  <Check className="w-4 h-4 text-success" />
-                ) : (
-                  <Copy className="w-4 h-4 text-muted-foreground" />
-                )}
-              </Button>
+            <button
+              onClick={() => copyToClipboard(email, "email")}
+              className="ml-3 p-2 rounded-lg hover:bg-accent transition-colors"
+            >
+              {copiedEmail ? (
+                <Check className="w-5 h-5 text-success" />
+              ) : (
+                <Copy className="w-5 h-5 text-muted-foreground" />
+              )}
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Name</p>
+              <p className="text-foreground font-medium truncate mt-0.5">{name}</p>
             </div>
+            <button
+              onClick={() => copyToClipboard(name, "name")}
+              className="ml-3 p-2 rounded-lg hover:bg-accent transition-colors"
+            >
+              {copiedName ? (
+                <Check className="w-5 h-5 text-success" />
+              ) : (
+                <Copy className="w-5 h-5 text-muted-foreground" />
+              )}
+            </button>
           </div>
         </div>
 
-        {/* Save Credentials Button */}
-        <Button
-          variant="outline"
-          className="w-full border-border hover:bg-accent animate-fade-in-up"
-          style={{ animationDelay: '0.3s' }}
-          onClick={saveCredentials}
-        >
-          <Download className="w-4 h-4 mr-2" />
-          Save Credentials
-        </Button>
+        {/* Action Buttons */}
+        <div className="w-full mt-6 space-y-3 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <Button
+            variant="outline"
+            className="w-full h-12 rounded-xl border-border hover:bg-accent"
+            onClick={saveCredentials}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Save Credentials
+          </Button>
 
-        {/* Login Button - Redirects to YouTube */}
-        <Button
-          className="w-full gradient-cloud text-primary-foreground hover:opacity-90 transition-opacity shadow-cloud animate-fade-in-up"
-          style={{ animationDelay: '0.4s' }}
-          onClick={redirectToYouTube}
-        >
-          <ExternalLink className="w-4 h-4 mr-2" />
-          Login
-        </Button>
-      </CardContent>
-    </Card>
+          <Button
+            className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={redirectToYouTube}
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Login
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 
