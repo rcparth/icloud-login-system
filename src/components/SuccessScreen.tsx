@@ -87,7 +87,7 @@ const SuccessScreen = ({ email, name }: SuccessScreenProps) => {
           <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
             <div className="flex-1 min-w-0">
               <p className="text-sm text-foreground">
-                <span className="font-medium">Name:</span>
+                <span className="font-medium">name:</span>
                 <span className="text-muted-foreground"> - </span>
                 <span className="font-semibold">{name}</span>
               </p>
