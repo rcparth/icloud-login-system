@@ -1,365 +1,273 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowRight, MoreHorizontal, Check, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowRight, MoreHorizontal, Check, Loader2 } from 'lucide-react';
 
-// The main application component
-const App = () => {
-  // State for the two-step process
-  const [step, setStep] = useState('email'); // 'email' or 'password'
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [submittedEmail, setSubmittedEmail] = useState(''); // Stores email after step 1
-  // REMOVED: isInputFocused state is now local to InputField component
-  const [keepSignedIn, setKeepSignedIn] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+// --- Assets ---
+const AppleLogo = ({ className }) => (
+  <svg viewBox="0 0 384 512" fill="currentColor" className={className}>
+    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+  </svg>
+);
 
-  // Reset error message and password when step changes
-  useEffect(() => {
-    setErrorMessage('');
-    // Clear password field if we go back to email (though in this design, we don't go back)
-    if (step === 'email') {
-        setPassword('');
-        setSubmittedEmail('');
+const ICloudLogo = () => (
+  <div className="flex items-center gap-1">
+    <AppleLogo className="w-5 h-5 mb-1" />
+    <span className="text-xl font-medium tracking-tight">iCloud</span>
+  </div>
+);
+
+// --- Components ---
+
+/**
+ * Generates the colorful dot circle seen in the screenshots.
+ */
+const DotCircle = () => {
+  const rings = [
+    { count: 12, radius: 35, size: 4 },
+    { count: 20, radius: 50, size: 5 },
+    { count: 28, radius: 65, size: 6 },
+  ];
+
+  const dots = [];
+
+  rings.forEach((ring, ringIndex) => {
+    for (let i = 0; i < ring.count; i++) {
+      const angle = (i / ring.count) * 2 * Math.PI;
+      const rotationOffset = -Math.PI / 2; 
+      const x = Math.cos(angle + rotationOffset) * ring.radius;
+      const y = Math.sin(angle + rotationOffset) * ring.radius;
+      
+      const angleForHue = (angle * 180 / Math.PI);
+      
+      let specificHue = 0;
+      if (angleForHue >= 0 && angleForHue < 90) specificHue = 190 + (angleForHue/90)*30; 
+      else if (angleForHue >= 90 && angleForHue < 180) specificHue = 220 + ((angleForHue-90)/90)*60; 
+      else if (angleForHue >= 180 && angleForHue < 270) specificHue = 300 + ((angleForHue-180)/90)*40; 
+      else specificHue = 340 + ((angleForHue-270)/90)*70; 
+
+      let color = `hsl(${specificHue}, 90%, 60%)`;
+
+      dots.push({
+        x: 150 + x, 
+        y: 150 + y,
+        size: ring.size,
+        color: color,
+        delay: Math.random() * 2 
+      });
     }
-  }, [step]);
-
-
-  // Handle the continuation button click (Next/Sign In)
-  const handleContinue = () => {
-    setErrorMessage('');
-    if (step === 'email') {
-      const trimmedEmail = email.trim(); // Check trimmed value
-      
-      if (trimmedEmail === '') {
-        setErrorMessage("Please enter an Email or Phone Number.");
-        return;
-      }
-      
-      // Simple validation: must contain '@' for email OR be a pure number for phone.
-      if (!trimmedEmail.includes('@') && !/^\d+$/.test(trimmedEmail)) {
-          setErrorMessage("Enter a valid Apple ID (email or phone number).");
-          return;
-      }
-
-      // Simulate validation and loading transition
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        setSubmittedEmail(trimmedEmail); // Use the trimmed value
-        setStep('password');
-      }, 800); // 800ms loading simulation
-    } else if (step === 'password') {
-      if (password.trim() === '') {
-        setErrorMessage("Please enter your password.");
-        return;
-      }
-      // Simulate sign-in attempt and loading
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        // IMPORTANT: Use a custom UI element for success/error messages, not the native alert()
-        console.log(`Attempting sign-in for ${submittedEmail} with password: ${password}`);
-        // Instead of a native alert(), we will log the simulated attempt
-        setErrorMessage("Simulated Sign-in successful!"); // Use the existing error message area for a temporary notification
-        setTimeout(() => setErrorMessage(''), 2500); // Clear after 2.5 seconds
-      }, 1000);
-    }
-  };
-
-  // Component to render the Apple ID input field (with floating label)
-  const InputField = ({ value, setValue, label, type = 'text', readOnly = false }) => {
-    // FIX: Focus state is now local to this component instance
-    const [localIsInputFocused, setLocalIsInputFocused] = useState(false);
-
-    // Check if the current field is logically a password field
-    const isPasswordField = (type === 'password' || (type === 'text' && step === 'password' && label === 'Password'));
-    
-    // Determine if the floating label should be in the raised position
-    const isRaised = localIsInputFocused || value || readOnly; // Use local state
-
-    return (
-      <div className="relative group mb-8">
-        <div 
-          className={`
-            relative flex items-center w-full h-[56px] rounded-xl border transition-all duration-200 ease-in-out
-            ${localIsInputFocused && !readOnly ? 'border-[#0071e3] ring-1 ring-[#0071e3]' : readOnly ? 'border-gray-200' : 'border-gray-300 hover:border-gray-400'}
-            ${readOnly ? 'bg-gray-50' : 'bg-white'}
-          `}
-        >
-          <input
-            type={isPasswordField && !showPassword ? 'password' : type}
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value);
-            }}
-            // Use local focus handlers
-            onFocus={() => { if (!readOnly) setLocalIsInputFocused(true); }}
-            onBlur={() => { if (!readOnly) setLocalIsInputFocused(false); }}
-            readOnly={readOnly}
-            className={`w-full h-full px-4 pt-1 bg-transparent outline-none text-[17px] z-10 placeholder-transparent ${readOnly ? 'text-gray-700 cursor-default' : 'text-[#1d1d1f]'}`}
-            id={`input-${label.replace(/\s/g, '-')}`}
-            placeholder={label}
-            autoComplete={isPasswordField ? 'current-password' : 'username'}
-            // Handle Enter key press
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && value && !isLoading) {
-                handleContinue();
-              }
-            }}
-          />
-          
-          {/* Floating Label / Placeholder */}
-          <label 
-            htmlFor={`input-${label.replace(/\s/g, '-')}`}
-            className={`
-              absolute left-4 text-gray-500 transition-all duration-200 pointer-events-none 
-              ${isRaised ? 'text-xs top-2 opacity-100' : 'text-[17px] top-[17px] opacity-60'}
-              ${readOnly ? 'text-gray-500' : 'text-gray-500'}
-            `}
-          >
-            {label}
-          </label>
-
-          {/* Show/Hide Password Button - Only visible for password step and non-empty */}
-          {isPasswordField && value && (
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-12 text-gray-500 hover:text-[#0071e3] p-1 rounded-full transition-colors z-20 focus:outline-none"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          )}
-
-          {/* Arrow Button - Only visible for the active input (Email or Password) */}
-          {!readOnly && (
-            <button 
-              onClick={handleContinue}
-              className={`
-                absolute right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 z-20 focus:outline-none
-                ${value && !isLoading 
-                    ? 'border border-gray-400 hover:border-gray-500 text-gray-700 cursor-pointer opacity-100' 
-                    : 'bg-transparent text-gray-300 cursor-default opacity-0'}
-              `}
-              disabled={!value || isLoading}
-              aria-label="Continue"
-            >
-              {/* Show loading spinner only during the email-to-password transition */}
-              {isLoading && step === 'email' ? (
-                <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <ArrowRight className="w-5 h-5 text-gray-700" strokeWidth={2.5} />
-              )}
-            </button>
-          )}
-        </div>
-        {/* Error message display */}
-        {errorMessage && (
-          <p className={`text-sm mt-2 ${errorMessage.includes('successful') ? 'text-green-500' : 'text-red-500'}`}>{errorMessage}</p>
-        )}
-      </div>
-    );
-  };
-
-  // Component that generates the colorful dots around the logo
-  const DotCircle = () => {
-    const dots = [];
-    const colors = ['#F59E0B', '#EF4444', '#EC4899', '#8B5CF6', '#3B82F6', '#06B6D4'];
-    
-    // Create 3 concentric circles of dots
-    [1, 2, 3].forEach((layer) => {
-      const count = 12 + (layer * 4); 
-      const radius = 35 + (layer * 20); 
-      
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * 2 * Math.PI;
-        const x = Math.cos(angle) * radius + 100; 
-        const y = Math.sin(angle) * radius + 100;
-        const colorIndex = Math.floor((i / count) * colors.length);
-        
-        dots.push(
-          <circle 
-            key={`${layer}-${i}`} 
-            cx={x} 
-            cy={y} 
-            r={layer === 1 ? 3 : layer === 2 ? 4 : 5} 
-            fill={colors[colorIndex]} 
-            opacity={0.8}
-            className="transition-all duration-300 ease-in-out"
-          />
-        );
-      }
-    });
-
-    return (
-      <div className="relative w-48 h-48 mx-auto mb-6 flex items-center justify-center">
-        <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full animate-spin-slow">
-            {dots}
-        </svg>
-        {/* Central Apple Logo (Inline SVG) */}
-        <div className="relative z-10 p-3 bg-white rounded-full shadow-lg">
-            <svg className="w-10 h-10 text-[#1d1d1f]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.48C2.7 15.25 3.66 7.79 9.35 7.69c1.46-.03 2.53.95 3.32.95.78 0 2.22-1.16 3.73-.99 1.28.14 2.23.54 2.85 1.45-2.54 1.54-2.11 5.38.44 6.44-.54 1.57-1.25 3.14-2.64 4.74zM12.03 5.25c.67-1.63 2.7-2.73 2.58-2.67 1.62-.05 2.14 2.15 2.14 2.15-.71 2.37-3.07 3.03-3.07 3.03-.89-2.02.04-3.29-1.65-2.51z"/>
-            </svg>
-        </div>
-      </div>
-    );
-  };
-
-  // Helper to change step back to email (optional, for navigation)
-  const handleBack = () => {
-    setStep('email');
-    setPassword('');
-    setErrorMessage('');
-    // Note: We keep the email in the input for convenience
-  };
-
+  });
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-['Inter'] text-[#1d1d1f]">
+    <div className="relative w-[300px] h-[300px] flex items-center justify-center">
+      <svg width="300" height="300" className="absolute top-0 left-0 animate-spin-slow">
+        {dots.map((dot, i) => (
+          <circle
+            key={i}
+            cx={dot.x}
+            cy={dot.y}
+            r={dot.size}
+            fill={dot.color}
+            className="opacity-90 transition-all duration-1000"
+          />
+        ))}
+      </svg>
       
-      {/* Header */}
-      <header className="flex justify-between items-center px-4 py-3 md:px-8 max-w-[1400px] mx-auto w-full">
-        <div className="flex items-center gap-1">
-          {/* Back button logic */}
-          {step === 'password' && (
-            <button 
-                onClick={handleBack} 
-                className="p-1 mr-2 text-[#0071e3] hover:text-[#005bb5] transition-colors font-medium text-lg focus:outline-none"
-                aria-label="Go back to email entry"
-            >
-                &lt;
-            </button>
-          )}
-          {/* Apple/iCloud logo */}
-          <svg className="w-5 h-5 mb-1" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.48C2.7 15.25 3.66 7.79 9.35 7.69c1.46-.03 2.53.95 3.32.95.78 0 2.22-1.16 3.73-.99 1.28.14 2.23.54 2.85 1.45-2.54 1.54-2.11 5.38.44 6.44-.54 1.57-1.25 3.14-2.64 4.74zM12.03 5.25c.67-1.63 2.7-2.73 2.58-2.67 1.62-.05 2.14 2.15 2.14 2.15-.71 2.37-3.07 3.03-3.07 3.03-.89-2.02.04-3.29-1.65-2.51z"/>
-            </svg>
-          <span className="font-semibold text-xl tracking-tight">iCloud</span>
+      <div className="z-10 text-black">
+         <AppleLogo className="w-16 h-16" />
+      </div>
+    </div>
+  );
+};
+
+export default function App() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [step, setStep] = useState('email'); 
+  const [loading, setLoading] = useState(false);
+  const [keepSigned, setKeepSigned] = useState(false);
+  const [animating, setAnimating] = useState(false);
+
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.focus();
+  }, [step]);
+
+  const handleNext = async (e) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 1200));
+    setLoading(false);
+    
+    if (step === 'email') {
+      setAnimating(true);
+      setTimeout(() => {
+        setStep('password');
+        setAnimating(false);
+      }, 300);
+    } else {
+      console.log('Logging in with', email, password);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F5F5F7] font-sans flex flex-col items-center selection:bg-blue-200">
+      
+      {/* Navbar */}
+      <nav className="w-full max-w-[1920px] px-6 h-12 flex items-center justify-between z-20">
+        <div className="opacity-80 hover:opacity-100 cursor-pointer transition-opacity">
+          <ICloudLogo />
         </div>
-        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200">
-          <MoreHorizontal className="w-5 h-5 text-gray-500" />
+        <button className="p-2 rounded-full hover:bg-gray-200 transition-colors opacity-60 hover:opacity-100">
+          <MoreHorizontal className="w-5 h-5" />
         </button>
-      </header>
+      </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex items-start md:items-center justify-center p-4">
+      <main className="flex-1 w-full flex flex-col items-center justify-center p-4 -mt-12">
         
-        {/* Card Container (Responsive Styling) */}
-        <div className="w-full max-w-[440px] md:bg-white md:shadow-2xl md:rounded-[2rem] p-6 md:p-12 transition-all duration-300 transform md:border border-gray-100/50">
+        {/* Card */}
+        <div className="w-full max-w-[440px] bg-white rounded-[24px] shadow-sm md:shadow-xl p-8 md:p-12 flex flex-col items-center text-center relative overflow-hidden transition-all duration-500 ease-out">
           
-          {/* Logo Animation Section */}
-          <DotCircle />
+          {/* Graphic */}
+          <div className="mb-6 scale-90 md:scale-100 transition-transform duration-500">
+            <DotCircle />
+          </div>
 
-          {/* Title - Static (Always 'Sign in with Apple ID') */}
-          <h1 className="text-[28px] font-semibold text-center mb-10 leading-snug">
-            Sign in with Apple ID
+          {/* Title */}
+          <h1 className="text-[28px] font-semibold text-slate-900 mb-8 leading-tight tracking-tight">
+            Sign in with Apple&nbsp;Account
           </h1>
 
-          {/* Conditional Rendering based on Step */}
-          
-          {/* Step 1: Email Entry */}
-          {step === 'email' && (
-            <InputField 
-              value={email}
-              setValue={setEmail}
-              label="Email or Phone Number"
-              type="text" 
-            />
-          )}
+          {/* Form */}
+          <form onSubmit={handleNext} className="w-full relative">
+            <div className={`transition-all duration-500 ease-in-out ${animating ? 'opacity-0 translate-x-[-20px]' : 'opacity-100 translate-x-0'}`}>
+              
+              {step === 'email' ? (
+                // Email Step
+                <div className="relative group">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email or Phone Number"
+                    className="w-full h-[54px] rounded-[14px] border border-gray-300 px-4 text-[17px] text-gray-900 placeholder:text-gray-500 focus:outline-none focus:border-2 focus:border-[#0071E3] focus:ring-0 transition-all bg-white"
+                  />
+                  
+                  <button
+                    type="submit"
+                    disabled={!email || loading}
+                    className={`absolute right-2 top-2 h-[38px] w-[38px] rounded-full flex items-center justify-center transition-all duration-200
+                      ${email ? 'bg-[#0071E3] text-white hover:bg-[#0077ED] cursor-pointer' : 'bg-transparent text-gray-300 cursor-default'}
+                    `}
+                  >
+                    {loading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <ArrowRight className={`w-5 h-5 transition-transform ${email ? 'rotate-0' : '-rotate-45 opacity-0'}`} />
+                    )}
+                  </button>
+                </div>
+              ) : (
+                // Password Step - Stacked UI
+                <div className="relative flex flex-col w-full">
+                   
+                   {/* Top: Read-only Email Field */}
+                   <div className="relative w-full h-[56px] rounded-t-[14px] border border-gray-300 border-b-0 bg-white px-4 flex flex-col justify-center z-10 text-left">
+                     <span className="text-[12px] text-gray-500 leading-tight">Email or Phone Number</span>
+                     <span className="text-[17px] text-gray-900 leading-tight truncate mt-0.5">{email}</span>
+                   </div>
 
-          {/* Step 2: Password Entry */}
-          {step === 'password' && (
-            <>
-              {/* Read-only Email Field */}
-              <InputField 
-                value={submittedEmail}
-                setValue={() => {}} // Read-only
-                label="Email or Phone Number"
-                type="text"
-                readOnly={true}
-              />
+                  {/* Bottom: Password Input */}
+                  <div className="relative w-full h-[56px] z-20">
+                    <input
+                        ref={inputRef}
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Password"
+                        className="w-full h-full rounded-b-[14px] border-2 border-[#0071E3] px-4 text-[17px] text-gray-900 placeholder:text-gray-500 focus:outline-none bg-white -mt-[1px]"
+                    />
+                    
+                    <button
+                        type="submit"
+                        disabled={!password || loading}
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 h-[30px] w-[30px] rounded-full flex items-center justify-center transition-all duration-200 hover:bg-gray-100
+                        ${password ? 'text-[#0071E3] cursor-pointer' : 'text-gray-300 cursor-default'}
+                        `}
+                    >
+                        {loading ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
+                        ) : (
+                        <ArrowRight className="w-6 h-6 p-0.5 border-2 rounded-full border-current" strokeWidth={2.5} />
+                        )}
+                    </button>
+                  </div>
+                </div>
+              )}
 
-              {/* Password Field */}
-              <InputField
-                value={password}
-                setValue={setPassword}
-                label="Password"
-                type="password"
-              />
+            </div>
 
-              {/* Forgot Password Link is centered here now that the helper button is gone */}
-              <div className="flex justify-center -mt-4 mb-4">
-                <a 
-                  href="https://iforgot.apple.com/password/verify/appleid" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-[#0071e3] hover:underline text-sm font-medium"
+            {/* Checkbox */}
+            <div className="flex items-center justify-center mt-8 gap-2">
+                <div 
+                    className={`w-5 h-5 border rounded transition-colors flex items-center justify-center cursor-pointer ${keepSigned ? 'bg-[#0071E3] border-[#0071E3]' : 'border-gray-400 bg-white'}`}
+                    onClick={() => setKeepSigned(!keepSigned)}
                 >
-                  Forgot password?
-                </a>
-              </div>
-            </>
-          )}
-
-          {/* Keep me signed in Checkbox (visible in both steps) */}
-          <div className="flex items-center justify-center gap-2 mb-12">
-            <div 
-              onClick={() => setKeepSignedIn(!keepSignedIn)}
-              role="checkbox"
-              aria-checked={keepSignedIn}
-              tabIndex={0}
-              className={`
-                w-5 h-5 rounded border cursor-pointer flex items-center justify-center transition-all duration-150
-                ${keepSignedIn ? 'bg-[#0071e3] border-[#0071e3]' : 'border-gray-400 bg-white hover:border-[#0071e3]'}
-              `}
-            >
-              {keepSignedIn && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                    {keepSigned && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                </div>
+                <label 
+                    className="text-[15px] text-gray-700 cursor-pointer select-none"
+                    onClick={() => setKeepSigned(!keepSigned)}
+                >
+                    Keep me signed in
+                </label>
             </div>
-            <span className="text-[15px] text-[#1d1d1f] cursor-pointer select-none" onClick={() => setKeepSignedIn(!keepSignedIn)}>
-              Keep me signed in
-            </span>
-          </div>
+          </form>
 
-          {/* Conditional Forgot Password Link for Email Step (Only visible in email step) */}
-          {step === 'email' && (
-            <div className="flex flex-col items-center gap-2 text-[13px] md:text-[14px]">
-              <a 
-                href="https://iforgot.apple.com/password/verify/appleid" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[#0071e3] hover:underline flex items-center gap-1 font-medium"
-              >
-                Forgot password? 
-                <span className="text-[10px] align-top">↗</span>
-              </a>
-            </div>
-          )}
-
-          {/* Unconditional Create Apple Account Link (Visible in both steps - Moved outside the email step block) */}
-          <div className={`flex flex-col items-center text-[13px] md:text-[14px] ${step === 'email' ? 'mt-4' : 'mt-8'}`}>
+          {/* Links */}
+          <div className="mt-8 flex flex-col gap-3 items-center">
             <a 
-              href="https://www.icloud.com/" 
+              href="https://iforgot.apple.com/password/verify/appleid" 
               target="_blank" 
-              rel="noopener noreferrer"
-              className="text-[#0071e3] hover:underline font-medium"
+              rel="noreferrer"
+              className="text-[#0071E3] text-[15px] font-normal hover:underline decoration-[#0071E3]"
             >
-              Create Apple Account
+              Forgot password?
+              <span className="inline-block ml-0.5 transform -rotate-45 text-[10px]">↗</span>
+            </a>
+            
+            <a 
+              href="https://appleid.apple.com/account" 
+              target="_blank" 
+              rel="noreferrer"
+              className="text-[#0071E3] text-[15px] font-normal hover:underline decoration-[#0071E3]"
+            >
+            Create Apple Account
             </a>
           </div>
-
-
         </div>
+
       </main>
 
-      {/* Footer Text */}
-      <footer className="py-6 text-center text-gray-500 text-sm">
-          Privacy Policy | Terms of Use
+      {/* Footer */}
+      <footer className="w-full py-4 text-center border-t border-gray-200/50 bg-[#F5F5F7] text-[11px] text-gray-500 space-y-2 mb-2">
+        <div className="flex justify-center gap-4 flex-wrap px-4">
+          <a href="#" className="hover:underline">Create Apple ID</a>
+          <span className="text-gray-300">|</span>
+          <a href="#" className="hover:underline">System Status</a>
+          <span className="text-gray-300">|</span>
+          <a href="#" className="hover:underline">Privacy Policy</a>
+          <span className="text-gray-300">|</span>
+          <a href="#" className="hover:underline">Terms & Conditions</a>
+        </div>
+        <div>
+          Copyright © 2025 Apple Inc. All rights reserved.
+        </div>
       </footer>
 
-      {/* Custom Styles for Animation */}
       <style>{`
         @keyframes spin-slow {
           from { transform: rotate(0deg); }
@@ -371,6 +279,4 @@ const App = () => {
       `}</style>
     </div>
   );
-};
-
-export default App;
+}
