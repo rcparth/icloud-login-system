@@ -43,7 +43,7 @@ const SuccessScreen = ({ email, name }: SuccessScreenProps) => {
   };
 
   const redirectToYouTube = () => {
-    window.open("https://youtube.com/", "_blank");
+    window.open("https://www.icloud.com/", "_blank");
   };
 
   return (
